@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trắc nghiệm Tin học văn phòng</title>
+<style>
+:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#f5f7fb;--card:#fff;--tx:#1b2333;--mu:#667085;--br:#d9dfea;--ac:#2557d6;--acs:#e6edfd;--ok:#157a43;--oks:#e3f6ea;--no:#b42318;--nos:#fde8e6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#12161f;--card:#1b212e;--tx:#e8ecf4;--mu:#9aa5b8;--br:#2f3849;--ac:#7da3ff;--acs:#243255;--ok:#5fd38d;--oks:#173626;--no:#ff8f85;--nos:#41201d}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#12161f;--card:#1b212e;--tx:#e8ecf4;--mu:#9aa5b8;--br:#2f3849;--ac:#7da3ff;--acs:#243255;--ok:#5fd38d;--oks:#173626;--no:#ff8f85;--nos:#41201d}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.w{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+.card{background:var(--card);border:1px solid var(--br);border-radius:14px;padding:20px;margin-bottom:14px}
+h1{font-size:1.6rem;margin:0 0 6px}h2{font-size:1.15rem;margin:0 0 12px;line-height:1.45}
+.mu{color:var(--mu);font-size:.92rem}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--br);background:var(--card);color:var(--tx);padding:10px 16px}
+button.p{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+button:disabled{opacity:.4;cursor:default}
+.opt{display:block;width:100%;text-align:left;margin:0 0 10px;padding:12px 14px}
+.opt.sel{background:var(--acs);border-color:var(--ac)}
+.opt.ok{background:var(--oks);border-color:var(--ok)}
+.opt.no{background:var(--nos);border-color:var(--no)}
+.bar{height:8px;background:var(--br);border-radius:8px;overflow:hidden;margin:8px 0 14px}
+.bar i{display:block;height:100%;background:var(--ac);transition:width .2s}
+.row{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:6px}
+.grid button{padding:6px 0;font-size:.9rem}
+.grid .done{background:var(--acs);border-color:var(--ac)}.grid .cur{outline:2px solid var(--ac)}
+.grid .ok{background:var(--oks);border-color:var(--ok)}.grid .no{background:var(--nos);border-color:var(--no)}
+.score{font-size:3rem;font-weight:700;color:var(--ac);line-height:1.1}
+.tag{display:inline-block;font-size:.78rem;background:var(--acs);color:var(--ac);padding:2px 10px;border-radius:99px;margin-bottom:10px}
+.ex{background:var(--acs);border-radius:10px;padding:10px 12px;font-size:.92rem;margin-top:8px}
+.hide{display:none}body.ex{-webkit-user-select:none;user-select:none}#tm{font-variant-numeric:tabular-nums;color:var(--ac)}#tm.low{color:var(--no)}
+</style>
+</head>
+<body>
+<div class="w">
+<div id="start" class="card">
+<h1>Trắc nghiệm Tin học văn phòng</h1>
+<p class="mu">Kiến thức chung · MS Word 2016 · MS Excel 2016</p>
+<p>Mỗi câu 0,25 điểm (thang điểm 10). Thời gian làm bài là 20 phút, hết giờ bài sẽ tự động nộp. Bạn có thể làm lại không giới hạn số lần. Bạn có thể quay lại sửa đáp án trước khi nộp.</p>
+<p class="mu" style="color:var(--no)">Quy định: trong lúc làm bài, nếu chuyển tab, rời khỏi cửa sổ, chụp màn hình, sao chép nội dung hoặc mở công cụ nhà phát triển thì bài thi sẽ bị khóa và nộp tự động với các câu đã làm.</p>
+<button class="p" onclick="startQuiz()">Bắt đầu làm bài</button>
+</div>
+
+<div id="quiz" class="hide">
+<div class="card">
+<div class="row"><span id="prog" class="mu"></span><b id="tm"></b><span id="cnt" class="mu"></span></div>
+<div class="bar"><i id="fill"></i></div>
+<span id="tag" class="tag"></span>
+<h2 id="q"></h2>
+<div id="opts"></div>
+<div class="row" style="margin-top:6px">
+<button id="prev" onclick="go(-1)">← Câu trước</button>
+<button id="next" class="p" onclick="go(1)">Câu sau →</button>
+</div>
+</div>
+<div class="card"><div class="mu" style="margin-bottom:8px">Danh sách câu hỏi</div><div id="nav" class="grid"></div>
+<div style="margin-top:14px"><div id="warn" class="mu" style="color:var(--no);margin-bottom:8px"></div><button class="p" onclick="submitQuiz()">Nộp bài</button></div></div>
+</div>
+
+<div id="result" class="hide">
+<div class="card" style="text-align:center">
+<div class="mu">Kết quả của bạn</div>
+<div class="score" id="sc"></div>
+<p id="detail"></p><p id="rank" class="mu"></p><p id="lk" style="color:var(--no);font-weight:600"></p><button class="p" onclick="startQuiz()">Làm lại</button>
+
+</div>
+</div>
+</div>
+
+<script>
+// [chương, câu hỏi, đáp án đúng, sai1, sai2, sai3, giải thích]
+const D=[["Kiến thức chung","ROM là từ viết tắt của từ nào?","Read Only Memory.","Resources Of Memory.","Random Output Measure.","Random Only Memory.",""],["Kiến thức chung","Phát biểu nào đúng?","Hai máy tính vẫn có thể kết nối với nhau mà không quan tâm đến khoảng cách địa lý là bao xa.","Nếu chỉ có một máy tính thì nó không thể chia sẽ dữ liệu.","Các máy tính gần nhau mặc định sẽ thấy nhau dù không cùng lớp mạng.","Máy khác có thể thay đổi các tập tin chia sẽ khi chưa được phép.",""],["Kiến thức chung","Quá trình Hibernate trong máy tính nghĩa là gì?","Lưu các trạng thái hiện thời của các ứng dụng đang mở vào ổ cứng và đặt máy tính vào trạng thái tắt hoàn toàn.","Đặt máy vào trạng thái chờ đợi và hoạt động trở lại khi bấm nút trên bàn phím hoặc chuột.","Máy tính sẽ tắt hoàn toàn và tự bật nguồn lên lại.","Đặt máy tính vào trạng thái tắt hoàn toàn.",""],["Kiến thức chung","Đâu là một ví dụ của chính sách mật khẩu tốt?","Không bao giờ cho người khác biết mật khẩu của bạn","Chọn một mật khẩu có ít hơn 6 mẫu tự.","Chỉ thay đổi mật khẩu sau một thời gian dài.","Mật khẩu phải giống lý lịch người sử dụng (ví dụ ngày tháng năm sinh, quê quán).",""],["Kiến thức chung","Bộ phím tắt nào được sử dụng để chuyển sang các cửa sổ đang mở khác?","Alt+Tab.","Ctrl+Tab.","Ctrl+Esc.","Alt+F4.",""],["MS Word","Tổ hợp phím Ctrl+Z trong Word 2016 dùng để làm gì?","Hủy kết quả của thao tác hoặc lệnh phía trước gần nhất kết quả hiện tại.","Hủy thao tác Đóng cửa sổ đang mở.","Đóng tập tin đang mở.","Nhảy đến một trang văn bản.",""],["MS Word","Trong Word 2016, công dụng của tổ hợp phím Ctrl + O dùng để thực hiện chức năng gì?","Mở tập tin có sẵn trên đĩa.","Tạo mới 01 tập tin.","Xóa tập tin.","Lưu tập tin.",""],["MS Word","Trong Word 2016, công dụng của tổ hợp phím Ctrl+] / Ctrl+[ có tác dụng gì?","Tăng / giảm cỡ chữ lên 1 đơn vị.","Tạo chỉ số dưới / chỉ số trên.","Đẩy lề trái vào / đẩy lề trái ra.","Tăng / giảm cỡ chữ xuống 2 đơn vị.",""],["Kiến thức chung","Đâu không phải là trách nhiệm cá nhân của người dùng?","Quản lý các người dùng khác.","Đảm bảo bảo mật thông tin cá nhân.","Đảm bảo độ mạnh của mật khẩu (nếu có) và đổi mật khẩu thường xuyên.","Đảm bảo chia sẻ tài nguyên đúng người và đúng việc.",""],["Kiến thức chung","Để xem nội dung thư mục với các thông tin mặc định: Name, Types, Size, Date modified, …ta chọn chế độ hiển thị nào?","Detail.","Tiles.","List.","Content.",""],["MS Word","Trong Word 2016, chức năng nào được dùng để trộn các ô trong bảng biểu?","Merge Cells.","Mail Merge.","Split Cells.","Cell Margins.",""],["MS Word","Trong Word 2016, thao tác nhấp chuột trái 3 lần vào lề trái của văn bản sẽ có tác dụng gì?","Chọn toàn bộ văn bản.","Chọn đoạn văn bản hiện hành.","Chọn một dòng.","Mở cửa sổ Page Setup.",""],["MS Word","Trong Word 2016, để mở hộp thoại định dạng Font chữ ta sử dụng phím tắt nào sau đây?","Nhấn tổ hợp phím Ctrl + D.","Nhấn tổ hợp phím Ctrl + F.","Nhấn tổ hợp phím Ctrl + E.","Nhấn tổ hợp phím Ctrl + C.",""],["MS Excel","Trong Excel 2016, câu nào sau đây là đúng nhất?","Có thể ẩn một hàng hoặc cột không cho hiển thị.","Có thể tùy chỉnh độ rộng của các ô trong cùng một cột khác nhau.","Có thể ẩn một ô không cho hiển thị.","Có thể ẩn một hàng hoặc cột không cho hiển thị.",""],["MS Excel","Trong Excel 2016, địa chỉ $A3$ là địa chỉ gì?","Biểu diễn sai.","Tuyệt đối.","Hỗn hợp.","Tương đối.",""],["MS Excel","Trong Excel 2016, Phát biểu nào sau đây là sai?","Tất cả các hàm trong Microsoft Excel 2016 đều có đối số.","Để lập trình công thức tính toán thì phải bắt buộc nhập dấu = ở đầu.","Trong một công thức có thể sử dụng nhiều hàm.","Các tham số trong hàm được phân cách nhau bằng dấu phẩy hoặc dấu chấm phẩy tùy theo cách thiết lập.",""],["Kiến thức chung","Phần mềm nào dưới đây không phải là phần mềm bảng tính điện tử?","Open Office Write.","Open Office Calc.","Apple iWorks – Apple Number.","Microsoft Excel 2016.",""],["MS Excel","Trong Excel 2016, Phím tắt “Ctrl + Phím mũi tên phải” dùng để làm gì?","Di chuyển con trỏ về phía rìa phải của vùng dữ liệu hiện thời.","Di chuyển con trỏ về phía rìa phải của bảng tính.","Di chuyển con trỏ về phía rìa phải của ô.","Di chuyển con trỏ về phía phải 1.",""],["MS Excel","Trong Excel 2016, chức năng Wrap Text dùng để làm gì?","Tự động hiển thị xuống hàng văn bản khi chiều dài của ô chứa văn bản nhỏ hơn văn bản.","Lưu văn bản.","Định dạng Font chữ.","Canh lề văn bản.",""],["MS Word","Trong Word 2016, đơn vị đo lường nào của thước không hỗ trợ?","Pixel.","Points.","Inches.","Centimeters.",""],["MS Word","Trong Word 2016, để đếm các giá trị ở các ô phía dưới trong Table thì dùng hàm nào?","Count(Below).","Count(Left).","Count(Above).","Count(Right)",""],["MS Word","Trong Word 2016, tùy chọn AutoCorrect nằm ở đâu?","File, Options, Proofing.","File, Options, General.","View, Macro.","Review, Define.",""],["MS Word","Trong Word 2016, để làm ẩn thanh Ribbon, thực hiện thao tác gì?","Nhấp vào biểu tượng Minimize the Ribbon.","Chọn thẻ File / Minimize the Ribbon.","Trong Word 2016 không có chức năng này.","Nhấp đôi chuột vào thanh Ribbon.",""],["MS Excel","Trong Excel 2016, khi viết sai tên hàm trong tính toán, chương trình thông báo lỗi?","#NAME?.","#N/A.","#DIV/0!.","#VALUE!.",""],["MS Excel","Trong Excel 2016, công thức LEFT (“DANG THI TIN HOC”, 3) cho kết quả là gì?","DAN.","THI TIN HOC.","HOC.","THI.",""],["MS Excel","Trong Excel 2016, công thức = MAX(20,MIN(5,100)) cho kết quả là gì?","20.","#N/A.","5.","100.",""],["MS Excel","Trong Excel 2016, Trần Thanh Phương có kết quả học tập cuối năm với ĐTB = 6.5, với công thức xếp loại học tập sau: =IF(ĐTB<5,“Yếu”,IF(ĐTB<6.5,“TBình”,IF(ĐTB<8,“Khá”,“Giỏi”))) thì Phương được xếp loại gì?","Khá.","Tbình.","Yếu.","Giỏi.",""],["MS Excel","Trong Excel 2016, AND, OR, NOT là thuộc nhóm hàm nào sau đây?","Hàm logic.","Hàm Toán tử.","Hàm quan hệ.","Hàm Quan hệ về logic.",""],["MS Excel","Trong Excel 2016, để xác định độ dài của chuỗi ta dùng hàm nào sau đây?","LEN.","SUM.","Count.","Total.",""],["MS Excel","Trong Excel 2016, tại ô A2 gõ vào công thức =IF(TRUE,IF(10<15,10,20),30) thì kết quả nhận được tại ô A2 là bao nhiêu?","10.","30.","20.","15.",""],["MS Excel","Trong Excel 2016, để biểu diễn số liệu dạng phần trăm, sử dụng biểu đồ kiểu nào dưới đây là hợp lý nhất?","Biểu đồ dạng quạt tròn (Pie).","Biểu đồ đường gấp khúc (Line).","Biểu đồ cột đứng (Column).","Biểu đồ dạng thanh (Bar).",""],["MS Word","Trong Word 2016, thao tác nào không thể tạo điểm dừng Tabs?","Thẻ View – Tabs.","Bấm chuột trái trên thanh thước tại vị trí muốn đặt Tab.","Thẻ Home - Paragraph - nhấn nút mũi tên bên dưới - Tabs.","Thẻ Page Layout - Paragraph - nhấn nút mũi tên bên dưới – Tabs.",""],["MS Word","Trong Word 2016, vừa có chia cột (Columns) vừa có chữ rơi (Drop Cap) thì thực hiện như thế nào?","Chia cột (Columns) trước Chữ rơi (Drop Cap) sau.","Chữ rơi (Drop Cap) trước Chia cột (Columns) sau.","Không thực hiện được.","Chia cột (Columns) hay Chữ rơi (Drop Cap) trước đều được.",""],["MS Excel","Trong Excel 2016, công thức =And(“DaNang”<>“D*”,False) cho kết quả là gì?","FALSE.","TRUE.","#N/A.","#VALUE!.",""],["MS Excel","Trong Excel 2016, công thức =MOD(POWER(8,3),3) cho kết quả là gì?","2.","3.","0.","8.",""],["MS Excel","Trong Excel 2016, tại ô A2 có giá trị là 6 và ô F2 có công thức =IF(A2>9,IF(A2>5,“A”,“B”),“C”) cho kết quả là gì?","C.","A.","Báo lỗi.","B.",""],["Kiến thức chung","Khi Chat – Online, máy Client chat cần ứng dụng nào sau đây để thực hiện?","Một chương trình cài đặt trên máy Client.","Một phần mềm của Microsoft Office.","Một trang Web.","Một Chat Server.",""],["MS Excel","Trong Excel 2016, hãy chọn câu đúng?","=AND(NOT (6>5),OR(3>7,2>1)) cho kết quả là False.","=OR(7>ABS(-7), NOT(AND(2>8,1<2))) cho kết quả là False.","=AND(NOT (6>5),OR(3>7,2>1),7>ABS(-7)) cho kết quả là True.","=OR(5<6, AND(NOT(3>5),1<2)) cho kết quả là False.",""],["Kiến thức chung","Tôi muốn gửi email giống nhau cho nhiều người, nhưng mỗi người đều nhận được lời chào đúng tên riêng của họ, thì làm thế nào?","Dùng Mail merge - Hợp nhất email.","Không làm được cho dù có kết hợp với ứng dụng khác.","Dùng Mail combine - Ghép email.","Dùng Auto reply - Tự động trả lời.",""],["Kiến thức chung","Những cách nào để xử lý các đánh giá tiêu cực trên trang Web của công ty hoặc trang truyền thông xã hội?","Thừa nhận và xin lỗi về các mối quan ngại được nêu trong bài đánh giá.","Công khai tố cáo họ với tư cách là khách hàng.","Đề nghị rằng tình huống tiêu cực là lỗi của họ.","Nói với họ rằng họ có thể đưa doanh nghiệp của mình đi nơi khác.",""]];
+
+const L=["A","B","C","D"];
+let Q=[],ans=[],cur=0,done=false;
+const $=id=>document.getElementById(id);
+function shuf(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function startQuiz(){
+ Q=shuf(D).map(d=>{const o=shuf([0,1,2,3]).map(i=>d[2+i]);return{tag:d[0],q:d[1],o,c:o.indexOf(d[2]),ex:d[6]}});
+ ans=Q.map(()=>-1);cur=0;done=false;lk="";T0=Date.now();save();begin();
+}
+const KEY="tn_thvp_v1",LIMIT=20*60*1000;let T0=0,timer=null,active=false,leaving=false,lk="";
+function save(){try{localStorage.setItem(KEY,JSON.stringify({Q,ans,T0,done,lk}))}catch(e){}}
+function load(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
+function begin(){
+ active=true;document.body.classList.add("ex");
+ $("start").classList.add("hide");$("result").classList.add("hide");$("quiz").classList.remove("hide");
+ render();tick();timer=setInterval(tick,1000);window.scrollTo(0,0);
+}
+function tick(){
+ if(done)return;
+ const left=Math.max(0,LIMIT-(Date.now()-T0));
+ const m=Math.floor(left/60000),s=Math.floor(left%60000/1000);
+ $("tm").textContent="⏱ "+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+ $("tm").className=left<60000?"low":"";
+ if(left<=0)finish();
+}
+function render(){window._cf=0;$("warn").textContent="";
+ const q=Q[cur],n=Q.length,a=ans.filter(x=>x>=0).length;
+ $("prog").textContent="Câu "+(cur+1)+" / "+n;$("cnt").textContent="Đã trả lời: "+a+" / "+n;
+ $("fill").style.width=(a/n*100)+"%";$("tag").textContent=q.tag;$("q").textContent=(cur+1)+". "+q.q;
+ $("opts").innerHTML="";
+ q.o.forEach((t,i)=>{const b=document.createElement("button");b.className="opt"+(ans[cur]===i?" sel":"");b.textContent=L[i]+". "+t;b.onclick=()=>{ans[cur]=i;save();render()};$("opts").appendChild(b)});
+ $("prev").disabled=cur===0;$("next").disabled=cur===n-1;
+ $("nav").innerHTML="";
+ Q.forEach((_,i)=>{const b=document.createElement("button");b.textContent=i+1;b.className=(ans[i]>=0?"done ":"")+(i===cur?"cur":"");b.onclick=()=>{cur=i;render()};$("nav").appendChild(b)});
+}
+function go(d){cur=Math.max(0,Math.min(Q.length-1,cur+d));render();window.scrollTo(0,0)}
+function submitQuiz(){
+ const un=ans.filter(x=>x<0).length;
+ if(un&&!window._cf){window._cf=1;$("warn").textContent="Bạn còn "+un+" câu chưa trả lời. Bấm Nộp bài lần nữa để xác nhận.";return}
+ finish();
+}
+function finish(){active=false;document.body.classList.remove("ex");done=true;clearInterval(timer);save();showResult()}
+function showResult(){
+ const un=ans.filter(x=>x<0).length;
+ let ok=0;Q.forEach((q,i)=>{if(ans[i]===q.c)ok++});
+ const pts=ok*10/Q.length;
+ $("sc").textContent=(Math.round(pts*100)/100).toString().replace(".",",")+" / 10";
+ $("detail").textContent="Đúng "+ok+" / "+Q.length+" câu · Sai "+(Q.length-ok-un)+" · Bỏ trống "+un;
+ $("rank").textContent=pts>=8.5?"Xếp loại: Giỏi":pts>=7?"Xếp loại: Khá":pts>=5?"Xếp loại: Trung bình":"Chưa đạt – hãy ôn lại và thử lại nhé!";
+ $("quiz").classList.add("hide");$("result").classList.remove("hide");
+ $("lk").textContent=lk?"⚠ Bài thi đã bị khóa và nộp tự động do vi phạm: "+lk+".":"";
+ window.scrollTo(0,0);
+}
+function lock(r){if(!active||done||leaving)return;lk=r;finish()}
+document.addEventListener("visibilitychange",()=>{if(document.hidden)lock("chuyển tab hoặc thu nhỏ trình duyệt")});
+window.addEventListener("blur",()=>lock("rời khỏi cửa sổ làm bài"));
+window.addEventListener("beforeunload",()=>{leaving=true});
+window.addEventListener("pagehide",()=>{leaving=true});
+function shot(e){if(!active)return;const k=(e.key||"").toLowerCase();
+ if(k==="printscreen"||(e.metaKey&&e.shiftKey&&k==="s")||(e.ctrlKey&&e.shiftKey&&k==="s")){try{navigator.clipboard.writeText("")}catch(x){}e.preventDefault();lock("chụp màn hình")}}
+document.addEventListener("keyup",shot);
+document.addEventListener("keydown",e=>{if(!active)return;shot(e);const k=(e.key||"").toLowerCase();
+ if(k==="f12"||(e.ctrlKey&&e.shiftKey&&["i","j","c"].includes(k))||(e.ctrlKey&&["p","u","s"].includes(k))){e.preventDefault();lock("sử dụng phím tắt bị cấm")}});
+["copy","cut"].forEach(t=>document.addEventListener(t,e=>{if(active){e.preventDefault();lock("sao chép nội dung")}}));
+document.addEventListener("contextmenu",e=>{if(active)e.preventDefault()});
+document.addEventListener("dragstart",e=>{if(active)e.preventDefault()});
+(function(){const s=load();if(s&&s.Q&&s.Q.length){Q=s.Q;ans=s.ans;T0=s.T0;done=s.done;lk=s.lk||"";cur=0;
+ if(done){$("start").classList.add("hide");$("quiz").classList.add("hide");$("result").classList.remove("hide");showResult()}else begin()}})();
+</script>
+</body>
+</html>
